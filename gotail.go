@@ -1,4 +1,4 @@
-// Package gotail provides performant tail-like behavior for tailing files.
+// Package gotail provides high performing tail-like behavior for tailing files.
 package gotail
 
 import (
