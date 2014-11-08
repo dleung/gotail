@@ -23,7 +23,7 @@ type Tail struct {
 }
 
 type Config struct {
-	timeout int
+	Timeout int
 }
 
 // Creates a new Tail Object which starts tailing the file
@@ -66,7 +66,7 @@ func (t *Tail) openAndWatch() error {
 					newFile = true
 				}
 
-				if t.config.timeout == 0 {
+				if t.config.Timeout == 0 {
 					timeout <- err
 					return
 				} else {
@@ -85,9 +85,9 @@ func (t *Tail) openAndWatch() error {
 		}
 	}()
 
-	if t.config.timeout != 0 {
+	if t.config.Timeout != 0 {
 		go func() {
-			time.Sleep(time.Duration(t.config.timeout) * time.Second)
+			time.Sleep(time.Duration(t.config.Timeout) * time.Second)
 
 			timeout <- err
 		}()
