@@ -1,5 +1,7 @@
 # Gotail
 
+[![Build Status](https://travis-ci.org/dleung/gotail.svg?branch=master)](https://travis-ci.org/dleung/gotail)
+
 ### Background
 I needed a simple utility to follow rapidly growing adserver logrotating logs that I can process dynamically and in real time.
 
