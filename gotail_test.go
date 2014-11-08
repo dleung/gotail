@@ -104,7 +104,7 @@ func TestNoFile(t *testing.T) {
 func TestBenchmark(t *testing.T) {
 	log.Println("Running Benchmarks")
 	var concurrency int = 2
-	var rowcount = 500000           // number of rows to write
+	var rowcount = 10000            // number of rows to write
 	runtime.GOMAXPROCS(concurrency) // number of writer processes
 	var row int
 
