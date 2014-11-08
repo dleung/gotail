@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"code.google.com/p/go.exp/fsnotify"
+	fsnotify "gopkg.in/fsnotify.v1"
 )
 
 type Tail struct {
@@ -150,7 +150,8 @@ func (t *Tail) watchFile() error {
 		return err
 	}
 	t.watcher = watcher
-	err = t.watcher.Watch(t.fname)
+
+	err = t.watcher.Add(t.fname)
 
 	if err != nil {
 		return err
@@ -159,13 +160,13 @@ func (t *Tail) watchFile() error {
 	go func() {
 		for {
 			select {
-			case evt := <-t.watcher.Event:
-				if evt != nil && (evt.IsDelete() || evt.IsRename()) {
+			case evt := <-t.watcher.Events:
+				if evt.Op == fsnotify.Create || evt.Op == fsnotify.Rename || evt.Op == fsnotify.Remove {
 					if err = t.openAndWatch(); err != nil {
 						log.Fatalln("open and watch failed:", err)
 					}
 				}
-			case err := <-t.watcher.Error:
+			case err := <-t.watcher.Errors:
 				if err != nil {
 					log.Fatalln("Watcher err:", err)
 				}
