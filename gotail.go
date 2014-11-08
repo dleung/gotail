@@ -1,3 +1,4 @@
+// Package gotail provides performant tail-like behavior for tailing files.
 package gotail
 
 import (
@@ -26,7 +27,10 @@ type Config struct {
 	Timeout int
 }
 
-// Creates a new Tail Object which starts tailing the file
+// NewTail creates a new Tail Object.  During initialization, it checks to see
+// If the file exists.  If it doesn't, NewTail sleeps up to Config.Timeout seconds
+// before returning an error.  If the file exists, then NewTail attaches an open file handle
+// and a watcher to the file for new notifications.
 func NewTail(fname string, config Config) (*Tail, error) {
 	tail := &Tail{
 		Lines:  make(chan string),
@@ -45,13 +49,15 @@ func NewTail(fname string, config Config) (*Tail, error) {
 	return tail, nil
 }
 
-// Close the tail object when finished, closing the file handle and watcher
+// Close closes the tail object when finished, closing the file handle and watcher
 func (t *Tail) Close() {
 	t.file.Close()
 	t.watcher.Close()
 }
 
-// Opens and watch the file with timeout.  If the timeout is reached, it exits with the error
+// openAndWatch continually polls the target file to try to set an open file handler and watcher.
+// If the timeout is reached, it sends the error back to the timeout signal
+// and the function returns an error.  If no error is detected, it returns immediately.
 func (t *Tail) openAndWatch() error {
 	var err error
 	var newFile bool
@@ -103,7 +109,12 @@ func (t *Tail) openAndWatch() error {
 	return nil
 }
 
-// Opens a file and finds the last byte to start tailing
+// openFile opens a file and finds the offset byte to start reading.
+// If it's a new file that has been created after Tail is following,
+// then it processes the entire file first.
+// This is because sometimes, a new file is considered "MODIFY" and
+// file.Seek will automatically point to the last byte of the file,
+// causing it to skip the first line.
 func (t *Tail) openFile(newFile bool) (err error) {
 	if t.file != nil {
 		t.file.Close()
@@ -114,10 +125,6 @@ func (t *Tail) openFile(newFile bool) (err error) {
 		return err
 	}
 
-	// If it's a new file, then start reading the file from the beginning.
-	// This is because sometimes, a new file is considered "MODIFY" and
-	// file.Seek will automatically point to the last byte of the file,
-	// Skipping the first line
 	if !newFile {
 		_, err = t.file.Seek(0, 2)
 	}
@@ -131,7 +138,8 @@ func (t *Tail) openFile(newFile bool) (err error) {
 	return nil
 }
 
-// Assigns a new watcher to the file
+// watchFile assigns a new fsnotify watcher to the file if possible.
+// It it watches for any signals that lead to file change, and responds accordingly.
 func (t *Tail) watchFile() error {
 	if t.watcher != nil {
 		t.watcher.Close()
@@ -168,7 +176,8 @@ func (t *Tail) watchFile() error {
 	return nil
 }
 
-// Separate goroutine to listen for new lines
+// listenAndReadLines continually polls the file in question,
+// reading any new lines that gets added to the file.
 func (t *Tail) listenAndReadLines() {
 	go func() {
 		for {
