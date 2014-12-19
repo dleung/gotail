@@ -11,7 +11,6 @@ Features
 - Default behavior supports logrotating files.
 - Timeout option to wait on new files that hasn't been created yet.
 - Supports high reads.  On my 2013 Macbook Pro, I was able benchmark at more than 150,000 lines/second (`go test`).  However, expected performance on production should be much higher.
-- Uses fsnotify for notification of file changes.  This will be part of the main go library in 1.5 (https://code.google.com/p/go/issues/detail?id=4068)
 - Lightweight and low memory footprint
 - Partly inspired by [ActiveState/tail](https://github.com/ActiveState/tail)
 
